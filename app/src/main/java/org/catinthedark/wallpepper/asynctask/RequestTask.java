@@ -71,6 +71,8 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
     int count;
     String groupName;
 
+    private static final String TAG = MyActivity.TAG;
+
     private final String getImageUrlFormat = "https://api.vk.com/method/photos.get?owner_id=-%d&album_id=wall&rev=1&count=%d";
     private final String getGroupIdUrlFormat = "http://api.vk.com/method/groups.getById?group_id=%s";
 
@@ -99,17 +101,17 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
 
                 groupId = resp.response[0].gid;
             } else {
-                Log.d(MyActivity.TAG, "Unable to complete HTTP request: " + statusLine.getReasonPhrase());
+                Log.d(TAG, "Unable to complete HTTP request: " + statusLine.getReasonPhrase());
                 response.getEntity().getContent().close();
                 throw new IOException(statusLine.getReasonPhrase());
             }
         } catch (IOException e) {
-            Log.e(MyActivity.TAG, "Unable to execute HTTP client: " + e.getMessage());
+            Log.e(TAG, "Unable to execute HTTP client: " + e.getMessage());
             return null;
         }
 
         if (groupId <= 0) {
-            Log.e(MyActivity.TAG, "Unable to resolve group Id by name");
+            Log.e(TAG, "Unable to resolve group Id by name");
             return null;
         }
 
@@ -150,7 +152,7 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
 
                     return BitmapFactory.decodeStream(input);
                 } else {
-                    Log.w(MyActivity.TAG, "Public has not wallpapers");
+                    Log.w(TAG, "Public has not wallpapers");
                     return null;
                 }
             } else{
@@ -159,7 +161,7 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
                 throw new IOException(statusLine.getReasonPhrase());
             }
         } catch (Exception e) {
-            Log.d(MyActivity.TAG, e.toString());
+            Log.d(TAG, e.toString());
             return null;
         }
     }
@@ -170,23 +172,23 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
             if (wallpaper != null) {
                 WallpaperManager wallpaperManager = WallpaperManager.getInstance(context);
 
-                Log.d(MyActivity.TAG, String.format("BEFORE: %d x %d", wallpaper.getWidth(), wallpaper.getHeight()));
+                Log.d(TAG, String.format("BEFORE: %d x %d", wallpaper.getWidth(), wallpaper.getHeight()));
 
                 int height = wallpaper.getHeight();
                 int desiredHeight = wallpaperManager.getDesiredMinimumHeight();
                 int desiredWidth = wallpaper.getWidth() * desiredHeight / height;
 
-                Log.d(MyActivity.TAG, String.format("AFTER: %d x %d", desiredWidth, desiredHeight));
+                Log.d(TAG, String.format("AFTER: %d x %d", desiredWidth, desiredHeight));
 
                 Bitmap scaledBitmap = Bitmap.createScaledBitmap(wallpaper, desiredWidth, desiredHeight, true);
                 wallpaperManager.setBitmap(scaledBitmap);
                 Toast.makeText(context, "Done!", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(context, "An error occured, try again", Toast.LENGTH_SHORT).show();
-                Log.w(MyActivity.TAG, "Wallpaper is null, try again");
+                Log.w(TAG, "Wallpaper is null, try again");
             }
         } catch (IOException e) {
-            Log.e(MyActivity.TAG, e.toString());
+            Log.e(TAG, e.toString());
         }
     }
 }
