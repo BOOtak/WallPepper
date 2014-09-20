@@ -2,25 +2,13 @@ package org.catinthedark.wallpepper;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.google.gson.Gson;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.catinthedark.wallpepper.asynctask.RequestTask;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
 
 public class MyActivity extends Activity {
