@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 
@@ -104,7 +105,9 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
 
                 Bitmap scaledBitmap = Bitmap.createScaledBitmap(wallpaper, desiredWidth, desiredHeight, true);
                 wallpaperManager.setBitmap(scaledBitmap);
+                Toast.makeText(context, "Done!", Toast.LENGTH_SHORT).show();
             } else {
+                Toast.makeText(context, "An error occured, try again", Toast.LENGTH_SHORT).show();
                 Log.w(MyActivity.TAG, "Wallpaper is null, try again");
             }
         } catch (IOException e) {
