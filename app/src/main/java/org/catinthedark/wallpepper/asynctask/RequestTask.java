@@ -1,15 +1,11 @@
 package org.catinthedark.wallpepper.asynctask;
 
-import android.app.Activity;
 import android.app.WallpaperManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
-import android.os.IBinder;
 import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 
@@ -94,11 +90,20 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
 
     @Override
     protected void onPostExecute(Bitmap wallpaper) {
-        Log.d(MyActivity.TAG, "Here");
         try {
             if (wallpaper != null) {
-                WallpaperManager.getInstance(context).setBitmap(wallpaper);
-                WallpaperManager.getInstance(context).setWallpaperOffsetSteps(1, 0);
+                WallpaperManager wallpaperManager = WallpaperManager.getInstance(context);
+
+                Log.d(MyActivity.TAG, String.format("BEFORE: %d x %d", wallpaper.getWidth(), wallpaper.getHeight()));
+
+                int height = wallpaper.getHeight();
+                int desiredHeight = wallpaperManager.getDesiredMinimumHeight();
+                int desiredWidth = wallpaper.getWidth() * desiredHeight / height;
+
+                Log.d(MyActivity.TAG, String.format("AFTER: %d x %d", desiredWidth, desiredHeight));
+
+                Bitmap scaledBitmap = Bitmap.createScaledBitmap(wallpaper, desiredWidth, desiredHeight, true);
+                wallpaperManager.setBitmap(scaledBitmap);
             } else {
                 Log.w(MyActivity.TAG, "Wallpaper is null, try again");
             }
