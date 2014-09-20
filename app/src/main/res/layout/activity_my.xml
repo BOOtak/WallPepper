@@ -34,11 +34,11 @@
         android:layout_height="wrap_content"
         android:text="@string/set_wallpaper"
         android:id="@+id/setWallpaperButton"
-        android:layout_below="@+id/randomCountEditText"
+        android:layout_below="@+id/randomRangeEditText"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_alignRight="@+id/randomCountEditText"
-        android:layout_alignEnd="@+id/randomCountEditText" />
+        android:layout_alignRight="@+id/randomRangeEditText"
+        android:layout_alignEnd="@+id/randomRangeEditText" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -56,7 +56,7 @@
         android:layout_height="wrap_content"
         android:inputType="number"
         android:ems="10"
-        android:id="@+id/randomCountEditText"
+        android:id="@+id/randomRangeEditText"
         android:layout_below="@+id/textView2"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
