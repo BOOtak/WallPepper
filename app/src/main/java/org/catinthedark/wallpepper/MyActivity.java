@@ -14,27 +14,6 @@ import org.catinthedark.wallpepper.asynctask.RequestTask;
 
 public class MyActivity extends Activity {
 
-    public class Response {
-        public ImgSrc[] response;
-    }
-
-    public class ImgSrc {
-        public int pid;
-        public int aid;
-        public int owner_id;
-        public int user_id;
-        public String src;
-        public String src_big;
-        public String src_small;
-        public String src_xbig;
-        public String src_xxbig;
-        public int width;
-        public int height;
-        public String text;
-        public long created;
-        public int post_id;
-    }
-
     public static final String TAG = "WallPepper";
 
     private final String SHARED_PREFS_NAME = "wallpepper_sharedprefs";

@@ -29,6 +29,27 @@ import java.net.URL;
  */
 public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
 
+    private class Response {
+        public ImgSrc[] response;
+    }
+
+    private class ImgSrc {
+        public int pid;
+        public int aid;
+        public int owner_id;
+        public int user_id;
+        public String src;
+        public String src_big;
+        public String src_small;
+        public String src_xbig;
+        public String src_xxbig;
+        public int width;
+        public int height;
+        public String text;
+        public long created;
+        public int post_id;
+    }
+
     Context context;
 
     @Override
@@ -47,12 +68,12 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
 
                 Gson gson = new Gson();
 
-                MyActivity.Response resp = gson.fromJson(responseString, MyActivity.Response.class);
+                Response resp = gson.fromJson(responseString, Response.class);
 
                 int index = (int)Math.round(Math.random() * (resp.response.length - 1));
 
                 if (index >= 0) {
-                    MyActivity.ImgSrc image = resp.response[index];
+                    ImgSrc image = resp.response[index];
                     String imgsrc = "";
                     if (image.src_xxbig != null) {
                         imgsrc = image.src_xxbig;
