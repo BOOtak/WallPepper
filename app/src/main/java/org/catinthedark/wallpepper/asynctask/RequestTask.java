@@ -29,7 +29,24 @@ import java.net.URL;
  */
 public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
 
-    private class Response {
+    private class GroupIdResponse {
+        public GroupId[] response;
+    }
+
+    private class GroupId {
+        public int gid;
+        public String name;
+        public String screen_name;
+        public int is_closed;
+        public String type;
+        public int is_admin;
+        public int is_member;
+        public String photo_50;
+        public String photo_100;
+        public String photo_200;
+    }
+
+    private class ImagesResponse {
         public ImgSrc[] response;
     }
 
@@ -51,14 +68,53 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
     }
 
     Context context;
+    int count;
+    String groupName;
+
+    private final String getImageUrlFormat = "https://api.vk.com/method/photos.get?owner_id=-%d&album_id=wall&rev=1&count=%d";
+    private final String getGroupIdUrlFormat = "http://api.vk.com/method/groups.getById?group_id=%s";
 
     @Override
     protected Bitmap doInBackground(Object... params) {
         HttpClient httpclient = new DefaultHttpClient();
         HttpResponse response;
-        context = (Context) params[1];
+        context = (Context) params[0];
+        groupName = (String) params[1];
+        count = (Integer) params[2];
+
+        Gson gson = new Gson();
+
+        int groupId;
+
         try {
-            response = httpclient.execute(new HttpGet((String) params[0]));
+            response = httpclient.execute(new HttpGet(String.format(getGroupIdUrlFormat, groupName)));
+            StatusLine statusLine = response.getStatusLine();
+            if(statusLine.getStatusCode() == HttpStatus.SC_OK) {
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                response.getEntity().writeTo(out);
+                out.close();
+                String responseString = out.toString();
+
+                GroupIdResponse resp = gson.fromJson(responseString, GroupIdResponse.class);
+
+                groupId = resp.response[0].gid;
+            } else {
+                Log.d(MyActivity.TAG, "Unable to complete HTTP request: " + statusLine.getReasonPhrase());
+                response.getEntity().getContent().close();
+                throw new IOException(statusLine.getReasonPhrase());
+            }
+        } catch (IOException e) {
+            Log.e(MyActivity.TAG, "Unable to execute HTTP client: " + e.getMessage());
+            return null;
+        }
+
+        if (groupId <= 0) {
+            Log.e(MyActivity.TAG, "Unable to resolve group Id by name");
+            return null;
+        }
+
+        try {
+            response = httpclient.execute(new HttpGet(String.format(getImageUrlFormat, groupId, count)));
             StatusLine statusLine = response.getStatusLine();
             if(statusLine.getStatusCode() == HttpStatus.SC_OK){
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -66,9 +122,7 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
                 out.close();
                 String responseString = out.toString();
 
-                Gson gson = new Gson();
-
-                Response resp = gson.fromJson(responseString, Response.class);
+                ImagesResponse resp = gson.fromJson(responseString, ImagesResponse.class);
 
                 int index = (int)Math.round(Math.random() * (resp.response.length - 1));
 

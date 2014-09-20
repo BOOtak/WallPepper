@@ -45,12 +45,10 @@ public class MyActivity extends Activity {
         setWallpaperButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String groupId = groupIdEditText.getText().toString();
+                String groupName = groupIdEditText.getText().toString();
                 int randomNumber = Integer.valueOf(randomRangeEditText.getText().toString());
 
-                String url = String.format("https://api.vk.com/method/photos.get?owner_id=-%s&album_id=wall&rev=1&count=%d", groupId, randomNumber);
-
-                new RequestTask().execute(url, getApplicationContext());
+                new RequestTask().execute(getApplicationContext(), groupName, randomNumber);
             }
         });
     }
