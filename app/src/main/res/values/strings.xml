@@ -9,5 +9,6 @@
     <string name="set_wallpaper">Set wallpaper</string>
     <string name="tags">Tags (comma-separated)</string>
     <string name="random_count_text">10</string>
+    <string name="tag_example">e.g. sunset</string>
 
 </resources>

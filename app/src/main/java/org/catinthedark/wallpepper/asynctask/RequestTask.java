@@ -74,16 +74,19 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
 
     Context context;
     int count;
+    String tags;
 
     private static final String TAG = MyActivity.TAG;
 
-    private final String getImageIdsUrlFormat = "https://api.flickr.com/services/rest/?method=flickr.photos.getRecent&api_key=%s&per_page=%d&format=json&nojsoncallback=1";
+    private final String getImageIdsUrlFormat = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=%s&tags=%s&per_page=%d&page=1&format=json&nojsoncallback=1";
     private final String getImageSizesUrlFormat = "https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=%s&photo_id=%s&format=json&nojsoncallback=1";
 
     @Override
     protected Bitmap doInBackground(Object... params) {
         context = (Context) params[0];
         count = (Integer) params[1];
+        tags = (String) params[2];
+
         String photoId = getPhotoId(count);
         String photoPath = getPhotoPath(photoId);
 
@@ -110,7 +113,7 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
         Gson gson = new Gson();
 
         try {
-            response = httpclient.execute(new HttpGet(String.format(getImageIdsUrlFormat, MyActivity.API_KEY, count)));
+            response = httpclient.execute(new HttpGet(String.format(getImageIdsUrlFormat, MyActivity.API_KEY, tags, count)));
             StatusLine statusLine = response.getStatusLine();
             if(statusLine.getStatusCode() == HttpStatus.SC_OK){
                 ByteArrayOutputStream out = new ByteArrayOutputStream();

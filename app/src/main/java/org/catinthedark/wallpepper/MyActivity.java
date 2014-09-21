@@ -19,9 +19,12 @@ public class MyActivity extends Activity {
     public static final String API_KEY = "2cc3659a84bb322d7523a89e53d58578";
 
     private final String SHARED_PREFS_NAME = "wallpepper_sharedprefs";
+    private final String TAGS_KEY = "tags";
     private final String RANDOM_RANGE_KEY = "random_range";
 
     private EditText randomRangeEditText;
+    private EditText tagsEditText;
+
     private SharedPreferences preferences;
 
     @Override
@@ -30,6 +33,7 @@ public class MyActivity extends Activity {
         setContentView(R.layout.activity_my);
 
         randomRangeEditText = (EditText) findViewById(R.id.randomRangeEditText);
+        tagsEditText = (EditText) findViewById(R.id.tagsEditText);
         Button setWallpaperButton = (Button) findViewById(R.id.setWallpaperButton);
 
         preferences = getSharedPreferences(SHARED_PREFS_NAME, MODE_PRIVATE);
@@ -38,12 +42,17 @@ public class MyActivity extends Activity {
             randomRangeEditText.setText(String.valueOf(preferences.getInt(RANDOM_RANGE_KEY, 10)));
         }
 
+        if (preferences.contains(TAGS_KEY)) {
+            tagsEditText.setText(preferences.getString(TAGS_KEY, ""));
+        }
+
         setWallpaperButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 int randomNumber = Integer.valueOf(randomRangeEditText.getText().toString());
+                String tags = tagsEditText.getText().toString();
 
-                new RequestTask().execute(getApplicationContext(), randomNumber);
+                new RequestTask().execute(getApplicationContext(), randomNumber, tags);
             }
         });
     }
