@@ -61,6 +61,7 @@ public class MyActivity extends Activity {
     protected void onPause() {
         preferences.edit()
                 .putInt(RANDOM_RANGE_KEY, Integer.valueOf(randomRangeEditText.getText().toString()))
+                .putString(TAGS_KEY, tagsEditText.getText().toString())
                 .apply();
         super.onPause();
     }
