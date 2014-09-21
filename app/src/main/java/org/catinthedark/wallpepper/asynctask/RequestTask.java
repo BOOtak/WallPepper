@@ -87,7 +87,7 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
         String photoId = getPhotoId(count);
         String photoPath = getPhotoPath(photoId);
 
-        URL url = null;
+        URL url;
         try {
             url = new URL(photoPath);
 
@@ -97,7 +97,7 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
             InputStream input = connection.getInputStream();
 
             return BitmapFactory.decodeStream(input);
-        } catch (Exception e) {
+        } catch (IOException e) {
             Log.e(TAG, "An error occurred: " + e.toString());
             return null;
         }
@@ -128,7 +128,7 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
                 response.getEntity().getContent().close();
                 throw new IOException(statusLine.getReasonPhrase());
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             Log.d(TAG, e.toString());
             return null;
         }
@@ -167,7 +167,7 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
                 response.getEntity().getContent().close();
                 throw new IOException(statusLine.getReasonPhrase());
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             Log.d(TAG, e.toString());
             return null;
         }
