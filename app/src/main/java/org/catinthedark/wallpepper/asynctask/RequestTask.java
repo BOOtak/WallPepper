@@ -1,5 +1,7 @@
 package org.catinthedark.wallpepper.asynctask;
 
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.WallpaperManager;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -28,7 +30,7 @@ import java.net.URL;
 /**
  * Created by kirill on 17.09.14.
  */
-public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
+public class RequestTask extends AsyncTask<Object, String, Bitmap> {
 
     Context context;
     int count;
@@ -39,15 +41,25 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
     private final String getImageIdsUrlFormat = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=%s&tags=%s&per_page=%d&page=1&format=json&nojsoncallback=1";
     private final String getImageSizesUrlFormat = "https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=%s&photo_id=%s&format=json&nojsoncallback=1";
 
+    NotificationManager notificationManager;
+    Notification.Builder notificationBuilder;
+
     @Override
     protected Bitmap doInBackground(Object... params) {
         context = (Context) params[0];
         count = (Integer) params[1];
         tags = (String) params[2];
 
+        notificationBuilder = new Notification.Builder(context)
+                .setSmallIcon(android.R.drawable.ic_menu_gallery)
+                .setContentTitle("Setting background...")
+                .setProgress(0, 0, true);
+        notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        publishProgress("Downloading wallpaper...");
+
         String photoId = getPhotoId(count);
         String photoPath = getPhotoPath(photoId);
-
         URL url;
         try {
             url = new URL(photoPath);
@@ -57,6 +69,7 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
             connection.connect();
             InputStream input = connection.getInputStream();
 
+            publishProgress("Setting wallpaper as background...");
             return BitmapFactory.decodeStream(input);
         } catch (IOException e) {
             Log.e(TAG, "An error occurred: " + e.toString());
@@ -126,6 +139,12 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
     }
 
     @Override
+    protected void onProgressUpdate(String... values) {
+        notificationBuilder.setContentText(values[0]);
+        notificationManager.notify(0, notificationBuilder.build());
+    }
+
+    @Override
     protected void onPostExecute(Bitmap wallpaper) {
         try {
             if (wallpaper != null) {
@@ -144,6 +163,7 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
                 Bitmap scaledBitmap = Bitmap.createScaledBitmap(wallpaper, desiredWidth, desiredHeight, true);
                 wallpaperManager.setBitmap(scaledBitmap);
                 Toast.makeText(context, "Done!", Toast.LENGTH_SHORT).show();
+                notificationManager.cancel(0);
             } else {
                 Toast.makeText(context, "An error occured, try again", Toast.LENGTH_SHORT).show();
                 Log.w(TAG, "Wallpaper is null, try again");
