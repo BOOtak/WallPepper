@@ -8,6 +8,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import org.catinthedark.wallpepper.asynctask.RequestTask;
 
@@ -49,10 +50,16 @@ public class MyActivity extends Activity {
         setWallpaperButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int randomNumber = Integer.valueOf(randomRangeEditText.getText().toString());
-                String tags = tagsEditText.getText().toString();
+                if (tagsEditText.getText().toString().isEmpty()) {
+                    Toast.makeText(
+                            getApplicationContext(), "Please fill tags", Toast.LENGTH_SHORT)
+                            .show();
+                } else {
+                    int randomNumber = Integer.valueOf(randomRangeEditText.getText().toString());
+                    String tags = tagsEditText.getText().toString();
 
-                new RequestTask().execute(getApplicationContext(), randomNumber, tags);
+                    new RequestTask().execute(getApplicationContext(), randomNumber, tags);
+                }
             }
         });
     }
