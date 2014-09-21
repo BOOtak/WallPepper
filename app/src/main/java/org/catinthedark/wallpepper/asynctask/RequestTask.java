@@ -154,16 +154,7 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
 
                 ImageSizesResponse resp = gson.fromJson(responseString, ImageSizesResponse.class);
 
-                String photoPath = null;
-
-                for (Size size : resp.sizes.size) {
-                    if (size.label.equals("Original")) {
-                        photoPath = size.source;
-                        break;
-                    }
-                }
-
-                return photoPath;
+                return resp.sizes.size[resp.sizes.size.length - 1].source;
 
             } else{
                 //Closes the connection.
