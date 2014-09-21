@@ -17,6 +17,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.catinthedark.wallpepper.MyActivity;
+import org.catinthedark.wallpepper.json.JsonHelpers;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -28,49 +29,6 @@ import java.net.URL;
  * Created by kirill on 17.09.14.
  */
 public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
-
-    private class RecentPhotosResponse {
-        public PhotoPageInfo photos;
-        public String stat;
-    }
-
-    private class PhotoPageInfo {
-        public int page;
-        public int pages;
-        public int perpage;
-        public String total;
-        public Photo[] photo;
-    }
-
-    private class Photo {
-        public String id;
-        public String owner;
-        public String sercet;
-        public String server;
-        public int farm;
-        public String title;
-        public int ispublic;
-        public int isfriend;
-        public int isfamily;
-    }
-
-    private class ImageSizesResponse {
-        public Sizes sizes;
-        public String stat;
-    }
-
-    private class Sizes {
-        public Size[] size;
-    }
-
-    private class Size {
-        public String label;
-        public String width;
-        public String height;
-        public String source;
-        public String url;
-        public String media;
-    }
 
     Context context;
     int count;
@@ -121,7 +79,7 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
                 out.close();
                 String responseString = out.toString();
 
-                RecentPhotosResponse resp = gson.fromJson(responseString, RecentPhotosResponse.class);
+                JsonHelpers.RecentPhotosResponse resp = gson.fromJson(responseString, JsonHelpers.RecentPhotosResponse.class);
 
                 int index = (int)Math.round(Math.random() * (resp.photos.photo.length - 1));
 
@@ -152,7 +110,7 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
                 out.close();
                 String responseString = out.toString();
 
-                ImageSizesResponse resp = gson.fromJson(responseString, ImageSizesResponse.class);
+                JsonHelpers.ImageSizesResponse resp = gson.fromJson(responseString, JsonHelpers.ImageSizesResponse.class);
 
                 return resp.sizes.size[resp.sizes.size.length - 1].source;
 
