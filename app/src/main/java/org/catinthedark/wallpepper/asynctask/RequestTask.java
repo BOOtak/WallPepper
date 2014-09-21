@@ -183,16 +183,9 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
 
                 int width = wallpaper.getWidth();
                 int height = wallpaper.getHeight();
-                int desiredWidth;
-                int desiredHeight;
 
-                if (width > height) {
-                    desiredWidth = wallpaperManager.getDesiredMinimumWidth();
-                    desiredHeight = height * desiredWidth / width;
-                } else {
-                    desiredHeight = wallpaperManager.getDesiredMinimumHeight();
-                    desiredWidth = width * desiredHeight / height;
-                }
+                int desiredHeight = wallpaperManager.getDesiredMinimumHeight();
+                int desiredWidth = width * desiredHeight / height;
 
                 Log.d(TAG, String.format("AFTER: %d x %d", desiredWidth, desiredHeight));
 
