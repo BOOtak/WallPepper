@@ -16,11 +16,11 @@ public class MyActivity extends Activity {
 
     public static final String TAG = "WallPepper";
 
+    public static final String API_KEY = "2cc3659a84bb322d7523a89e53d58578";
+
     private final String SHARED_PREFS_NAME = "wallpepper_sharedprefs";
-    private final String GROUP_ID_KEY = "group_id";
     private final String RANDOM_RANGE_KEY = "random_range";
 
-    private EditText groupIdEditText;
     private EditText randomRangeEditText;
     private SharedPreferences preferences;
 
@@ -29,14 +29,10 @@ public class MyActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my);
 
-        groupIdEditText = (EditText) findViewById(R.id.groupIdEditText);
         randomRangeEditText = (EditText) findViewById(R.id.randomRangeEditText);
         Button setWallpaperButton = (Button) findViewById(R.id.setWallpaperButton);
 
         preferences = getSharedPreferences(SHARED_PREFS_NAME, MODE_PRIVATE);
-        if (preferences.contains(GROUP_ID_KEY)) {
-            groupIdEditText.setText(preferences.getString(GROUP_ID_KEY, ""));
-        }
 
         if (preferences.contains(RANDOM_RANGE_KEY)) {
             randomRangeEditText.setText(String.valueOf(preferences.getInt(RANDOM_RANGE_KEY, 10)));
@@ -45,10 +41,9 @@ public class MyActivity extends Activity {
         setWallpaperButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String groupName = groupIdEditText.getText().toString();
                 int randomNumber = Integer.valueOf(randomRangeEditText.getText().toString());
 
-                new RequestTask().execute(getApplicationContext(), groupName, randomNumber);
+                new RequestTask().execute(getApplicationContext(), randomNumber);
             }
         });
     }
@@ -57,7 +52,6 @@ public class MyActivity extends Activity {
     protected void onPause() {
         preferences.edit()
                 .putInt(RANDOM_RANGE_KEY, Integer.valueOf(randomRangeEditText.getText().toString()))
-                .putString(GROUP_ID_KEY, groupIdEditText.getText().toString())
                 .apply();
         super.onPause();
     }

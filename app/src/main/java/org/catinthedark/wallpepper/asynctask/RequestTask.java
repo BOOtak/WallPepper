@@ -29,94 +29,88 @@ import java.net.URL;
  */
 public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
 
-    private class GroupIdResponse {
-        public GroupId[] response;
+    private class RecentPhotosResponse {
+        public PhotoPageInfo photos;
+        public String stat;
     }
 
-    private class GroupId {
-        public int gid;
-        public String name;
-        public String screen_name;
-        public int is_closed;
-        public String type;
-        public int is_admin;
-        public int is_member;
-        public String photo_50;
-        public String photo_100;
-        public String photo_200;
+    private class PhotoPageInfo {
+        public int page;
+        public int pages;
+        public int perpage;
+        public String total;
+        public Photo[] photo;
     }
 
-    private class ImagesResponse {
-        public ImgSrc[] response;
+    private class Photo {
+        public String id;
+        public String owner;
+        public String sercet;
+        public String server;
+        public int farm;
+        public String title;
+        public int ispublic;
+        public int isfriend;
+        public int isfamily;
     }
 
-    private class ImgSrc {
-        public int pid;
-        public int aid;
-        public int owner_id;
-        public int user_id;
-        public String src;
-        public String src_big;
-        public String src_small;
-        public String src_xbig;
-        public String src_xxbig;
-        public int width;
-        public int height;
-        public String text;
-        public long created;
-        public int post_id;
+    private class ImageSizesResponse {
+        public Sizes sizes;
+        public String stat;
+    }
+
+    private class Sizes {
+        public Size[] size;
+    }
+
+    private class Size {
+        public String label;
+        public String width;
+        public String height;
+        public String source;
+        public String url;
+        public String media;
     }
 
     Context context;
     int count;
-    String groupName;
 
     private static final String TAG = MyActivity.TAG;
 
-    private final String getImageUrlFormat = "https://api.vk.com/method/photos.get?owner_id=-%d&album_id=wall&rev=1&count=%d";
-    private final String getGroupIdUrlFormat = "http://api.vk.com/method/groups.getById?group_id=%s";
+    private final String getImageIdsUrlFormat = "https://api.flickr.com/services/rest/?method=flickr.photos.getRecent&api_key=%s&per_page=%d&format=json&nojsoncallback=1";
+    private final String getImageSizesUrlFormat = "https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=%s&photo_id=%s&format=json&nojsoncallback=1";
 
     @Override
     protected Bitmap doInBackground(Object... params) {
+        context = (Context) params[0];
+        count = (Integer) params[1];
+        String photoId = getPhotoId(count);
+        String photoPath = getPhotoPath(photoId);
+
+        URL url = null;
+        try {
+            url = new URL(photoPath);
+
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoInput(true);
+            connection.connect();
+            InputStream input = connection.getInputStream();
+
+            return BitmapFactory.decodeStream(input);
+        } catch (Exception e) {
+            Log.e(TAG, "An error occurred: " + e.toString());
+            return null;
+        }
+    }
+
+    private String getPhotoId(int count) {
         HttpClient httpclient = new DefaultHttpClient();
         HttpResponse response;
-        context = (Context) params[0];
-        groupName = (String) params[1];
-        count = (Integer) params[2];
 
         Gson gson = new Gson();
 
-        int groupId;
-
         try {
-            response = httpclient.execute(new HttpGet(String.format(getGroupIdUrlFormat, groupName)));
-            StatusLine statusLine = response.getStatusLine();
-            if(statusLine.getStatusCode() == HttpStatus.SC_OK) {
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                response.getEntity().writeTo(out);
-                out.close();
-                String responseString = out.toString();
-
-                GroupIdResponse resp = gson.fromJson(responseString, GroupIdResponse.class);
-
-                groupId = resp.response[0].gid;
-            } else {
-                Log.d(TAG, "Unable to complete HTTP request: " + statusLine.getReasonPhrase());
-                response.getEntity().getContent().close();
-                throw new IOException(statusLine.getReasonPhrase());
-            }
-        } catch (IOException e) {
-            Log.e(TAG, "Unable to execute HTTP client: " + e.getMessage());
-            return null;
-        }
-
-        if (groupId <= 0) {
-            Log.e(TAG, "Unable to resolve group Id by name");
-            return null;
-        }
-
-        try {
-            response = httpclient.execute(new HttpGet(String.format(getImageUrlFormat, groupId, count)));
+            response = httpclient.execute(new HttpGet(String.format(getImageIdsUrlFormat, MyActivity.API_KEY, count)));
             StatusLine statusLine = response.getStatusLine();
             if(statusLine.getStatusCode() == HttpStatus.SC_OK){
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -124,37 +118,50 @@ public class RequestTask extends AsyncTask<Object, Void, Bitmap> {
                 out.close();
                 String responseString = out.toString();
 
-                ImagesResponse resp = gson.fromJson(responseString, ImagesResponse.class);
+                RecentPhotosResponse resp = gson.fromJson(responseString, RecentPhotosResponse.class);
 
-                int index = (int)Math.round(Math.random() * (resp.response.length - 1));
+                int index = (int)Math.round(Math.random() * (resp.photos.photo.length - 1));
 
-                if (index >= 0) {
-                    ImgSrc image = resp.response[index];
-                    String imgsrc = "";
-                    if (image.src_xxbig != null) {
-                        imgsrc = image.src_xxbig;
-                    } else if (image.src_xbig != null) {
-                        imgsrc = image.src_xbig;
-                    } else if (image.src_big != null) {
-                        imgsrc = image.src_big;
-                    } else if (image.src_small != null) {
-                        imgsrc = image.src_small;
-                    } else {
-                        imgsrc = image.src;
+                return resp.photos.photo[index].id;
+            } else{
+                //Closes the connection.
+                response.getEntity().getContent().close();
+                throw new IOException(statusLine.getReasonPhrase());
+            }
+        } catch (Exception e) {
+            Log.d(TAG, e.toString());
+            return null;
+        }
+    }
+
+    private String getPhotoPath(String photoId) {
+        HttpClient httpclient = new DefaultHttpClient();
+        HttpResponse response;
+
+        Gson gson = new Gson();
+
+        try {
+            response = httpclient.execute(new HttpGet(String.format(getImageSizesUrlFormat, MyActivity.API_KEY, photoId)));
+            StatusLine statusLine = response.getStatusLine();
+            if(statusLine.getStatusCode() == HttpStatus.SC_OK){
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                response.getEntity().writeTo(out);
+                out.close();
+                String responseString = out.toString();
+
+                ImageSizesResponse resp = gson.fromJson(responseString, ImageSizesResponse.class);
+
+                String photoPath = null;
+
+                for (Size size : resp.sizes.size) {
+                    if (size.label.equals("Original")) {
+                        photoPath = size.source;
+                        break;
                     }
-
-                    URL url = new URL(imgsrc);
-
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                    connection.setDoInput(true);
-                    connection.connect();
-                    InputStream input = connection.getInputStream();
-
-                    return BitmapFactory.decodeStream(input);
-                } else {
-                    Log.w(TAG, "Public has not wallpapers");
-                    return null;
                 }
+
+                return photoPath;
+
             } else{
                 //Closes the connection.
                 response.getEntity().getContent().close();
