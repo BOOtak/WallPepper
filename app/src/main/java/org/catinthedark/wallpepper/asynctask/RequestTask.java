@@ -34,6 +34,7 @@ public class RequestTask extends AsyncTask<Object, String, Bitmap> {
 
     Context context;
     int count;
+    boolean lowRes;
     String tags;
 
     private static final String TAG = MyActivity.TAG;
@@ -48,7 +49,8 @@ public class RequestTask extends AsyncTask<Object, String, Bitmap> {
     protected Bitmap doInBackground(Object... params) {
         context = (Context) params[0];
         count = (Integer) params[1];
-        tags = (String) params[2];
+        lowRes = (Boolean) params[2];
+        tags = (String) params[3];
 
         notificationBuilder = new Notification.Builder(context)
                 .setSmallIcon(android.R.drawable.ic_menu_gallery)
@@ -125,7 +127,11 @@ public class RequestTask extends AsyncTask<Object, String, Bitmap> {
 
                 JsonHelpers.ImageSizesResponse resp = gson.fromJson(responseString, JsonHelpers.ImageSizesResponse.class);
 
-                return resp.sizes.size[resp.sizes.size.length - 1].source;
+                if (lowRes) {
+                    return resp.sizes.size[1].source;
+                } else {
+                    return resp.sizes.size[resp.sizes.size.length - 1].source;
+                }
 
             } else{
                 //Closes the connection.
@@ -150,18 +156,23 @@ public class RequestTask extends AsyncTask<Object, String, Bitmap> {
             if (wallpaper != null) {
                 WallpaperManager wallpaperManager = WallpaperManager.getInstance(context);
 
-                Log.d(TAG, String.format("BEFORE: %d x %d", wallpaper.getWidth(), wallpaper.getHeight()));
+                if (lowRes) {
+                    wallpaperManager.setBitmap(wallpaper);
+                } else {
 
-                int width = wallpaper.getWidth();
-                int height = wallpaper.getHeight();
+                    Log.d(TAG, String.format("BEFORE: %d x %d", wallpaper.getWidth(), wallpaper.getHeight()));
 
-                int desiredHeight = wallpaperManager.getDesiredMinimumHeight();
-                int desiredWidth = width * desiredHeight / height;
+                    int width = wallpaper.getWidth();
+                    int height = wallpaper.getHeight();
 
-                Log.d(TAG, String.format("AFTER: %d x %d", desiredWidth, desiredHeight));
+                    int desiredHeight = wallpaperManager.getDesiredMinimumHeight();
+                    int desiredWidth = width * desiredHeight / height;
 
-                Bitmap scaledBitmap = Bitmap.createScaledBitmap(wallpaper, desiredWidth, desiredHeight, true);
-                wallpaperManager.setBitmap(scaledBitmap);
+                    Log.d(TAG, String.format("AFTER: %d x %d", desiredWidth, desiredHeight));
+
+                    Bitmap scaledBitmap = Bitmap.createScaledBitmap(wallpaper, desiredWidth, desiredHeight, true);
+                    wallpaperManager.setBitmap(scaledBitmap);
+                }
                 Toast.makeText(context, "Done!", Toast.LENGTH_SHORT).show();
                 notificationManager.cancel(0);
             } else {

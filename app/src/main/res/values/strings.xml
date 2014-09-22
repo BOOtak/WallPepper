@@ -10,5 +10,6 @@
     <string name="tags">Tags (comma-separated)</string>
     <string name="random_count_text">10</string>
     <string name="tag_example">e.g. sunset</string>
+    <string name="low_res">Low res (for testing)</string>
 
 </resources>

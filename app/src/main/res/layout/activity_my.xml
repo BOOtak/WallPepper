@@ -55,12 +55,24 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
 
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/low_res"
+        android:id="@+id/lowResCheckBox"
+        android:layout_below="@+id/randomRangeEditText"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:checked="false" />
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/set_wallpaper"
         android:id="@+id/setWallpaperButton"
-        android:layout_below="@+id/randomRangeEditText"
+        android:layout_below="@+id/lowResCheckBox"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentRight="true"

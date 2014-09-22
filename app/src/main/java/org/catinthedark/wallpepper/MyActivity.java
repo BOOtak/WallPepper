@@ -7,6 +7,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -21,10 +22,12 @@ public class MyActivity extends Activity {
 
     private final String SHARED_PREFS_NAME = "wallpepper_sharedprefs";
     private final String TAGS_KEY = "tags";
+    private final String LOW_RES_KEY = "low_res";
     private final String RANDOM_RANGE_KEY = "random_range";
 
     private EditText randomRangeEditText;
     private EditText tagsEditText;
+    private CheckBox lowResCheckBox;
 
     private SharedPreferences preferences;
 
@@ -35,6 +38,7 @@ public class MyActivity extends Activity {
 
         randomRangeEditText = (EditText) findViewById(R.id.randomRangeEditText);
         tagsEditText = (EditText) findViewById(R.id.tagsEditText);
+        lowResCheckBox = (CheckBox) findViewById(R.id.lowResCheckBox);
         Button setWallpaperButton = (Button) findViewById(R.id.setWallpaperButton);
 
         preferences = getSharedPreferences(SHARED_PREFS_NAME, MODE_PRIVATE);
@@ -47,6 +51,10 @@ public class MyActivity extends Activity {
             tagsEditText.setText(preferences.getString(TAGS_KEY, ""));
         }
 
+        if (preferences.contains(LOW_RES_KEY)) {
+            lowResCheckBox.setChecked(preferences.getBoolean(LOW_RES_KEY, false));
+        }
+
         setWallpaperButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -57,8 +65,9 @@ public class MyActivity extends Activity {
                 } else {
                     int randomNumber = Integer.valueOf(randomRangeEditText.getText().toString());
                     String tags = tagsEditText.getText().toString();
+                    boolean lowRes = lowResCheckBox.isChecked();
 
-                    new RequestTask().execute(getApplicationContext(), randomNumber, tags);
+                    new RequestTask().execute(getApplicationContext(), randomNumber, lowRes, tags);
                 }
             }
         });
@@ -69,6 +78,7 @@ public class MyActivity extends Activity {
         preferences.edit()
                 .putInt(RANDOM_RANGE_KEY, Integer.valueOf(randomRangeEditText.getText().toString()))
                 .putString(TAGS_KEY, tagsEditText.getText().toString())
+                .putBoolean(LOW_RES_KEY, lowResCheckBox.isChecked())
                 .apply();
         super.onPause();
     }
