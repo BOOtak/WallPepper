@@ -38,7 +38,7 @@ public class RequestTask extends AsyncTask<Object, String, Bitmap> {
 
     private static final String TAG = MyActivity.TAG;
 
-    private final String getImageIdsUrlFormat = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=%s&tags=%s&per_page=%d&page=1&format=json&nojsoncallback=1";
+    private final String getImageIdsUrlFormat = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=%s&tags=%s&tag_mode=all&per_page=%d&page=1&format=json&nojsoncallback=1";
     private final String getImageSizesUrlFormat = "https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=%s&photo_id=%s&format=json&nojsoncallback=1";
 
     NotificationManager notificationManager;
