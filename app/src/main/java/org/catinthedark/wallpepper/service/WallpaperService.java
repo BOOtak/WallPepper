@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -39,7 +40,7 @@ public class WallpaperService extends IntentService {
     private final String getImageSizesUrlFormat = "https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=%s&photo_id=%s&format=json&nojsoncallback=1";
 
 
-    private Notification.Builder notificationBuilder;
+    private NotificationCompat.Builder notificationBuilder;
     private NotificationManager notificationManager;
     private final int NOTIFICATION_ID = 26682;
     private final int RANDOM_RANGE = 15;
@@ -70,7 +71,7 @@ public class WallpaperService extends IntentService {
         super.onCreate();
         Context context = getApplicationContext();
 
-        notificationBuilder = new Notification.Builder(context)
+        notificationBuilder = new NotificationCompat.Builder(context)
                 .setSmallIcon(android.R.drawable.ic_menu_gallery)
                 .setContentTitle("Setting background...")
                 .setProgress(0, 0, true);
