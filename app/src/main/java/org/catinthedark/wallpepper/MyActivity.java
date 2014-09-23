@@ -11,7 +11,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import org.catinthedark.wallpepper.asynctask.RequestTask;
+import org.catinthedark.wallpepper.service.WallpaperService;
 
 
 public class MyActivity extends Activity {
@@ -67,7 +67,7 @@ public class MyActivity extends Activity {
                     String tags = tagsEditText.getText().toString();
                     boolean lowRes = lowResCheckBox.isChecked();
 
-                    new RequestTask().execute(getApplicationContext(), randomNumber, lowRes, tags);
+                    WallpaperService.startChangeWallpaper(getApplicationContext(), tags, randomNumber, lowRes);
                 }
             }
         });

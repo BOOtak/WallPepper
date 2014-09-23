@@ -1,53 +1,63 @@
 package org.catinthedark.wallpepper.service;
 
 import android.app.IntentService;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.WallpaperManager;
 import android.content.Intent;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Log;
+import android.widget.Toast;
 
-/**
- * An {@link IntentService} subclass for handling asynchronous task requests in
- * a service on a separate handler thread.
- * <p>
- * TODO: Customize class - update intent actions, extra parameters and static
- * helper methods.
- */
+import com.google.gson.Gson;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.catinthedark.wallpepper.MyActivity;
+import org.catinthedark.wallpepper.json.JsonHelpers;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 public class WallpaperService extends IntentService {
-    // TODO: Rename actions, choose action names that describe tasks that this
-    // IntentService can perform, e.g. ACTION_FETCH_NEW_ITEMS
-    private static final String ACTION_FOO = "org.catinthedark.wallpepper.service.action.FOO";
-    private static final String ACTION_BAZ = "org.catinthedark.wallpepper.service.action.BAZ";
+    private static final String ACTION_CHANGE_WALLPAPER = "org.catinthedark.wallpepper.service.action.FOO";
 
-    // TODO: Rename parameters
-    private static final String EXTRA_PARAM1 = "org.catinthedark.wallpepper.service.extra.PARAM1";
-    private static final String EXTRA_PARAM2 = "org.catinthedark.wallpepper.service.extra.PARAM2";
+    private static final String EXTRA_TAGS = "org.catinthedark.wallpepper.service.extra.TAGS";
+    private static final String EXTRA_LOWRES = "org.catinthedark.wallpepper.service.extra.LOWRES";
+    private static final String EXTRA_RANDOM_RANGE = "org.catinthedark.wallpepper.service.extra.RANDOM_RANGE";
+
+    private final String getImageIdsUrlFormat = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=%s&tags=%s&tag_mode=all&per_page=%d&page=1&format=json&nojsoncallback=1";
+    private final String getImageSizesUrlFormat = "https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=%s&photo_id=%s&format=json&nojsoncallback=1";
+
+
+    private Notification.Builder notificationBuilder;
+    private NotificationManager notificationManager;
+    private final int NOTIFICATION_ID = 26682;
+    private final int RANDOM_RANGE = 15;
+
+    private static final String TAG = MyActivity.TAG;
 
     /**
-     * Starts this service to perform action Foo with the given parameters. If
-     * the service is already performing a task this action will be queued.
+     * Starts this service to find image on Flickr service with the given tags,
+     * download this image and set this as wallpaper
      *
      * @see IntentService
      */
-    // TODO: Customize helper method
-    public static void startActionFoo(Context context, String param1, String param2) {
+    public static void startChangeWallpaper(Context context, String tags, int randomRange, boolean lowRes) {
         Intent intent = new Intent(context, WallpaperService.class);
-        intent.setAction(ACTION_FOO);
-        intent.putExtra(EXTRA_PARAM1, param1);
-        intent.putExtra(EXTRA_PARAM2, param2);
-        context.startService(intent);
-    }
-
-    /**
-     * Starts this service to perform action Baz with the given parameters. If
-     * the service is already performing a task this action will be queued.
-     *
-     * @see IntentService
-     */
-    // TODO: Customize helper method
-    public static void startActionBaz(Context context, String param1, String param2) {
-        Intent intent = new Intent(context, WallpaperService.class);
-        intent.setAction(ACTION_BAZ);
-        intent.putExtra(EXTRA_PARAM1, param1);
-        intent.putExtra(EXTRA_PARAM2, param2);
+        intent.setAction(ACTION_CHANGE_WALLPAPER);
+        intent.putExtra(EXTRA_TAGS, tags);
+        intent.putExtra(EXTRA_RANDOM_RANGE, randomRange);
+        intent.putExtra(EXTRA_LOWRES, lowRes);
         context.startService(intent);
     }
 
@@ -56,36 +66,164 @@ public class WallpaperService extends IntentService {
     }
 
     @Override
+    public void onCreate() {
+        super.onCreate();
+        Context context = getApplicationContext();
+
+        notificationBuilder = new Notification.Builder(context)
+                .setSmallIcon(android.R.drawable.ic_menu_gallery)
+                .setContentTitle("Setting background...")
+                .setProgress(0, 0, true);
+        notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        super.onStartCommand(intent, flags, startId);
+
+        startForeground(NOTIFICATION_ID, notificationBuilder.build());
+        return START_NOT_STICKY;
+    }
+
+    @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {
             final String action = intent.getAction();
-            if (ACTION_FOO.equals(action)) {
-                final String param1 = intent.getStringExtra(EXTRA_PARAM1);
-                final String param2 = intent.getStringExtra(EXTRA_PARAM2);
-                handleActionFoo(param1, param2);
-            } else if (ACTION_BAZ.equals(action)) {
-                final String param1 = intent.getStringExtra(EXTRA_PARAM1);
-                final String param2 = intent.getStringExtra(EXTRA_PARAM2);
-                handleActionBaz(param1, param2);
+            if (ACTION_CHANGE_WALLPAPER.equals(action)) {
+                final String tags = intent.getStringExtra(EXTRA_TAGS);
+                final int randomRange = intent.getIntExtra(EXTRA_RANDOM_RANGE, RANDOM_RANGE);
+                final boolean lowRes = intent.getBooleanExtra(EXTRA_LOWRES, false);
+                changeWallpaper(tags, randomRange, lowRes);
             }
         }
     }
 
-    /**
-     * Handle action Foo in the provided background thread with the provided
-     * parameters.
-     */
-    private void handleActionFoo(String param1, String param2) {
-        // TODO: Handle action Foo
-        throw new UnsupportedOperationException("Not yet implemented");
+    private void publishProgress(String progress) {
+        notificationBuilder.setContentText(progress);
+        notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
     }
 
-    /**
-     * Handle action Baz in the provided background thread with the provided
-     * parameters.
-     */
-    private void handleActionBaz(String param1, String param2) {
-        // TODO: Handle action Baz
-        throw new UnsupportedOperationException("Not yet implemented");
+    private void changeWallpaper(String tags, int randomRange, boolean lowRes) {
+
+        Context context = getApplicationContext();
+
+        publishProgress("Downloading wallpaper...");
+
+        String photoId = getPhotoId(randomRange, tags);
+        String photoPath = getPhotoPath(photoId, lowRes);
+
+        URL url;
+        try {
+            url = new URL(photoPath);
+
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoInput(true);
+            connection.connect();
+            InputStream input = connection.getInputStream();
+
+            publishProgress("Setting wallpaper as background...");
+
+            Bitmap wallpaper = BitmapFactory.decodeStream(input);
+
+            if (wallpaper != null) {
+                setBitmapAsWallpaper(wallpaper, context, lowRes);
+            } else {
+                Log.w(TAG, "Wallpaper is null");
+            }
+            Log.d(MyActivity.TAG, "Service exited");
+            stopForeground(true);
+        } catch (IOException e) {
+            Log.e(TAG, "An error occurred: " + e.toString());
+        }
+    }
+
+    private String getPhotoId(int count, String tags) {
+        HttpClient httpclient = new DefaultHttpClient();
+        HttpResponse response;
+
+        Gson gson = new Gson();
+
+        try {
+            response = httpclient.execute(new HttpGet(String.format(getImageIdsUrlFormat, MyActivity.API_KEY, tags, count)));
+            StatusLine statusLine = response.getStatusLine();
+            if(statusLine.getStatusCode() == HttpStatus.SC_OK){
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                response.getEntity().writeTo(out);
+                out.close();
+                String responseString = out.toString();
+
+                JsonHelpers.RecentPhotosResponse resp = gson.fromJson(responseString, JsonHelpers.RecentPhotosResponse.class);
+
+                int index = (int)Math.round(Math.random() * (resp.photos.photo.length - 1));
+
+                return resp.photos.photo[index].id;
+            } else{
+                //Closes the connection.
+                response.getEntity().getContent().close();
+                throw new IOException(statusLine.getReasonPhrase());
+            }
+        } catch (IOException e) {
+            Log.d(TAG, e.toString());
+            return null;
+        }
+    }
+
+    private String getPhotoPath(String photoId, boolean lowRes) {
+        HttpClient httpclient = new DefaultHttpClient();
+        HttpResponse response;
+
+        Gson gson = new Gson();
+
+        try {
+            response = httpclient.execute(new HttpGet(String.format(getImageSizesUrlFormat, MyActivity.API_KEY, photoId)));
+            StatusLine statusLine = response.getStatusLine();
+            if(statusLine.getStatusCode() == HttpStatus.SC_OK){
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                response.getEntity().writeTo(out);
+                out.close();
+                String responseString = out.toString();
+
+                JsonHelpers.ImageSizesResponse resp = gson.fromJson(responseString, JsonHelpers.ImageSizesResponse.class);
+
+                if (lowRes) {
+                    return resp.sizes.size[1].source;
+                } else {
+                    return resp.sizes.size[resp.sizes.size.length - 1].source;
+                }
+
+            } else{
+                //Closes the connection.
+                response.getEntity().getContent().close();
+                throw new IOException(statusLine.getReasonPhrase());
+            }
+        } catch (IOException e) {
+            Log.d(TAG, e.toString());
+            return null;
+        }
+    }
+
+    private void setBitmapAsWallpaper(Bitmap wallpaper, Context context, boolean lowRes) {
+        WallpaperManager wallpaperManager = WallpaperManager.getInstance(context);
+
+        try {
+            if (lowRes) {
+                wallpaperManager.setBitmap(wallpaper);
+            } else {
+                Log.d(TAG, String.format("BEFORE: %d x %d", wallpaper.getWidth(), wallpaper.getHeight()));
+
+                int width = wallpaper.getWidth();
+                int height = wallpaper.getHeight();
+
+                int desiredHeight = wallpaperManager.getDesiredMinimumHeight();
+                int desiredWidth = width * desiredHeight / height;
+
+                Log.d(TAG, String.format("AFTER: %d x %d", desiredWidth, desiredHeight));
+
+                Bitmap scaledBitmap = Bitmap.createScaledBitmap(wallpaper, desiredWidth, desiredHeight, true);
+                wallpaperManager.setBitmap(scaledBitmap);
+            }
+        } catch (IOException e) {
+            Log.e(TAG, e.getMessage());
+        }
     }
 }
