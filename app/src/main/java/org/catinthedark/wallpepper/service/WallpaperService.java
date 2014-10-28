@@ -30,11 +30,11 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class WallpaperService extends IntentService {
-    private static final String ACTION_CHANGE_WALLPAPER = "org.catinthedark.wallpepper.service.action.FOO";
+    public static final String ACTION_CHANGE_WALLPAPER = "org.catinthedark.wallpepper.service.action.FOO";
 
-    private static final String EXTRA_TAGS = "org.catinthedark.wallpepper.service.extra.TAGS";
-    private static final String EXTRA_LOWRES = "org.catinthedark.wallpepper.service.extra.LOWRES";
-    private static final String EXTRA_RANDOM_RANGE = "org.catinthedark.wallpepper.service.extra.RANDOM_RANGE";
+    public static final String EXTRA_TAGS = "org.catinthedark.wallpepper.service.extra.TAGS";
+    public static final String EXTRA_LOWRES = "org.catinthedark.wallpepper.service.extra.LOWRES";
+    public static final String EXTRA_RANDOM_RANGE = "org.catinthedark.wallpepper.service.extra.RANDOM_RANGE";
 
     private final String getImageIdsUrlFormat = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=%s&tags=%s&tag_mode=all&per_page=%d&page=1&format=json&nojsoncallback=1";
     private final String getImageSizesUrlFormat = "https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=%s&photo_id=%s&format=json&nojsoncallback=1";

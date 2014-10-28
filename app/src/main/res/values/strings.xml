@@ -11,5 +11,7 @@
     <string name="random_count_text">10</string>
     <string name="tag_example">e.g. sunset</string>
     <string name="low_res">Low res (for testing)</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
 
 </resources>

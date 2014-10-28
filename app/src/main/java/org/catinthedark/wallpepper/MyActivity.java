@@ -20,10 +20,10 @@ public class MyActivity extends Activity {
 
     public static final String API_KEY = "2cc3659a84bb322d7523a89e53d58578";
 
-    private final String SHARED_PREFS_NAME = "wallpepper_sharedprefs";
-    private final String TAGS_KEY = "tags";
-    private final String LOW_RES_KEY = "low_res";
-    private final String RANDOM_RANGE_KEY = "random_range";
+    public static final String SHARED_PREFS_NAME = "wallpepper_sharedprefs";
+    public static final String TAGS_KEY = "tags";
+    public static final String LOW_RES_KEY = "low_res";
+    public static final String RANDOM_RANGE_KEY = "random_range";
 
     private EditText randomRangeEditText;
     private EditText tagsEditText;
