@@ -49,27 +49,8 @@ public class RefreshWallpaperWidget extends AppWidgetProvider {
 
         SharedPreferences preferences = context.getSharedPreferences(MyActivity.SHARED_PREFS_NAME, Context.MODE_PRIVATE);
 
-        int randomRange = 10;
-        String tags = "";
-        boolean lowRes = false;
-
-        if (preferences.contains(MyActivity.RANDOM_RANGE_KEY)) {
-            randomRange = preferences.getInt(MyActivity.RANDOM_RANGE_KEY, 10);
-        }
-
-        if (preferences.contains(MyActivity.TAGS_KEY)) {
-            tags = preferences.getString(MyActivity.TAGS_KEY, "");
-        }
-
-        if (preferences.contains(MyActivity.LOW_RES_KEY)) {
-            lowRes = preferences.getBoolean(MyActivity.LOW_RES_KEY, false);
-        }
-
         Intent intent = new Intent(context, WallpaperService.class);
-        intent.setAction(WallpaperService.ACTION_CHANGE_WALLPAPER);
-        intent.putExtra(WallpaperService.EXTRA_RANDOM_RANGE, randomRange);
-        intent.putExtra(WallpaperService.EXTRA_TAGS, tags);
-        intent.putExtra(WallpaperService.EXTRA_LOWRES, lowRes);
+        intent.setAction(WallpaperService.ACTION_CHANGE_WALLPAPER_NOPARAMS);
 
         PendingIntent pendingIntent = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 

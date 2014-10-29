@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.app.WallpaperManager;
 import android.content.Intent;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v4.app.NotificationCompat;
@@ -30,7 +31,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class WallpaperService extends IntentService {
-    public static final String ACTION_CHANGE_WALLPAPER = "org.catinthedark.wallpepper.service.action.FOO";
+    public static final String ACTION_CHANGE_WALLPAPER = "org.catinthedark.wallpepper.service.action.CHANGE_WALLPAPER";
+    public static final String ACTION_CHANGE_WALLPAPER_NOPARAMS = "org.catinthedark.wallpepper.service.action.CHANGE_WALLPAPER_NOPARAMS";
 
     public static final String EXTRA_TAGS = "org.catinthedark.wallpepper.service.extra.TAGS";
     public static final String EXTRA_LOWRES = "org.catinthedark.wallpepper.service.extra.LOWRES";
@@ -95,6 +97,8 @@ public class WallpaperService extends IntentService {
                 final int randomRange = intent.getIntExtra(EXTRA_RANDOM_RANGE, RANDOM_RANGE);
                 final boolean lowRes = intent.getBooleanExtra(EXTRA_LOWRES, false);
                 changeWallpaper(tags, randomRange, lowRes);
+            } else if (ACTION_CHANGE_WALLPAPER_NOPARAMS.equals(action)) {
+                changeWallpaper();
             }
         }
     }
@@ -102,6 +106,28 @@ public class WallpaperService extends IntentService {
     private void publishProgress(String progress) {
         notificationBuilder.setContentText(progress);
         notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
+    }
+
+    private void changeWallpaper() {
+        SharedPreferences preferences = getSharedPreferences(MyActivity.SHARED_PREFS_NAME, MODE_PRIVATE);
+
+        int randomRange = 10;
+        String tags = "";
+        boolean lowRes = false;
+
+        if (preferences.contains(MyActivity.RANDOM_RANGE_KEY)) {
+            randomRange = preferences.getInt(MyActivity.RANDOM_RANGE_KEY, 10);
+        }
+
+        if (preferences.contains(MyActivity.TAGS_KEY)) {
+            tags = preferences.getString(MyActivity.TAGS_KEY, "");
+        }
+
+        if (preferences.contains(MyActivity.LOW_RES_KEY)) {
+            lowRes = preferences.getBoolean(MyActivity.LOW_RES_KEY, false);
+        }
+
+        changeWallpaper(tags, randomRange, lowRes);
     }
 
     private void changeWallpaper(String tags, int randomRange, boolean lowRes) {
