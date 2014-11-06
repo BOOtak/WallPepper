@@ -132,6 +132,8 @@ public class WallpaperService extends IntentService {
 
     private void changeWallpaper(String tags, int randomRange, boolean lowRes) {
 
+        long then = System.currentTimeMillis();
+
         Context context = getApplicationContext();
 
         publishProgress("Downloading wallpaper...");
@@ -162,6 +164,8 @@ public class WallpaperService extends IntentService {
         } catch (IOException e) {
             Log.e(TAG, "An error occurred: " + e.toString());
         }
+
+        Log.d(TAG, String.format("Total time: %fs", (((float)(System.currentTimeMillis() - then) / 1000))));
     }
 
     private String getPhotoId(int count, String tags) {
