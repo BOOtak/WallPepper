@@ -2,12 +2,12 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 20
-    buildToolsVersion "20.0.0"
+    buildToolsVersion '21.1.2'
 
     defaultConfig {
         applicationId "org.catinthedark.wallpepper"
-        minSdkVersion 14
-        targetSdkVersion 20
+        minSdkVersion 10
+        targetSdkVersion 21
         versionCode 1
         versionName "1.0"
     }
@@ -20,7 +20,7 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile("com.google.code.gson:gson:2.3")
-    compile("com.android.support:support-v4:20.0.+")
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.google.code.gson:gson:2.3'
+    compile 'com.android.support:support-v4:20.0.+'
 }

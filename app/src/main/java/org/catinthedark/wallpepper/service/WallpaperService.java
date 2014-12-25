@@ -3,12 +3,14 @@ package org.catinthedark.wallpepper.service;
 import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.WallpaperManager;
 import android.content.Intent;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
@@ -22,6 +24,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.catinthedark.wallpepper.MyActivity;
+import org.catinthedark.wallpepper.R;
 import org.catinthedark.wallpepper.json.JsonHelpers;
 
 import java.io.ByteArrayOutputStream;
@@ -41,7 +44,7 @@ public class WallpaperService extends IntentService {
     private final String getImageIdsUrlFormat = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=%s&tags=%s&tag_mode=all&per_page=%d&page=1&format=json&nojsoncallback=1";
     private final String getImageSizesUrlFormat = "https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=%s&photo_id=%s&format=json&nojsoncallback=1";
 
-
+    private PendingIntent pendingIntent;
     private NotificationCompat.Builder notificationBuilder;
     private NotificationManager notificationManager;
     private final int NOTIFICATION_ID = 26682;
@@ -84,7 +87,14 @@ public class WallpaperService extends IntentService {
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
 
-        startForeground(NOTIFICATION_ID, notificationBuilder.build());
+        Notification notification = notificationBuilder.build();
+
+        if (Build.VERSION.SDK_INT <= 10) {
+            pendingIntent = PendingIntent.getService(getApplicationContext(), 0, new Intent(this, MyActivity.class), 0);
+            notification.setLatestEventInfo(this, getText(R.string.app_name), "setting background", pendingIntent);
+        }
+
+        startForeground(NOTIFICATION_ID, notification);
         return START_NOT_STICKY;
     }
 
@@ -105,7 +115,13 @@ public class WallpaperService extends IntentService {
 
     private void publishProgress(String progress) {
         notificationBuilder.setContentText(progress);
-        notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
+        Notification notification = notificationBuilder.build();
+
+        if (Build.VERSION.SDK_INT <= 10) {
+            notification.setLatestEventInfo(this, getText(R.string.app_name), progress, pendingIntent);
+        }
+
+        notificationManager.notify(NOTIFICATION_ID, notification);
     }
 
     private void changeWallpaper() {
