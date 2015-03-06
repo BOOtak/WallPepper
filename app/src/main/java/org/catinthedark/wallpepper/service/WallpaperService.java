@@ -27,9 +27,11 @@ import org.catinthedark.wallpepper.MyActivity;
 import org.catinthedark.wallpepper.R;
 import org.catinthedark.wallpepper.json.JsonHelpers;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -113,12 +115,22 @@ public class WallpaperService extends IntentService {
         }
     }
 
-    private void publishProgress(String progress) {
-        notificationBuilder.setContentText(progress);
+    private void publishProgress(String message) {
+        publishProgress(message, true, 0);
+    }
+
+    private void publishProgress(String message, boolean indeterminate, int CurrentProgress) {
+        notificationBuilder.setContentText(message);
+        if (indeterminate) {
+            notificationBuilder.setProgress(0, 0, true);
+        } else {
+            notificationBuilder.setProgress(100, CurrentProgress, false);
+        }
+
         Notification notification = notificationBuilder.build();
 
         if (Build.VERSION.SDK_INT <= 10) {
-            notification.setLatestEventInfo(this, getText(R.string.app_name), progress, pendingIntent);
+            notification.setLatestEventInfo(this, getText(R.string.app_name), message, pendingIntent);
         }
 
         notificationManager.notify(NOTIFICATION_ID, notification);
@@ -164,11 +176,23 @@ public class WallpaperService extends IntentService {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setDoInput(true);
             connection.connect();
+            int total_size = connection.getContentLength();
+            int current_size = 0;
             InputStream input = connection.getInputStream();
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+            byte[] imageBuffer = new byte[16384];
+
+            int read;
+            while ((read = input.read(imageBuffer)) != -1) {
+                current_size += read;
+                output.write(imageBuffer, 0, read);
+                publishProgress("Downloading wallpaper...", false, current_size * 100 / total_size);
+            }
 
             publishProgress("Setting wallpaper as background...");
 
-            Bitmap wallpaper = BitmapFactory.decodeStream(input);
+            Bitmap wallpaper = BitmapFactory.decodeByteArray(output.toByteArray(), 0, total_size);
 
             if (wallpaper != null) {
                 setBitmapAsWallpaper(wallpaper, context, lowRes);
