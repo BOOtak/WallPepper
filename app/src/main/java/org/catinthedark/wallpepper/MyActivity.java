@@ -3,6 +3,7 @@ package org.catinthedark.wallpepper;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,7 +15,7 @@ import android.widget.Toast;
 import org.catinthedark.wallpepper.service.WallpaperService;
 
 
-public class MyActivity extends Activity {
+public class MyActivity extends ActionBarActivity {
 
     public static final String TAG = "WallPepper";
 
