@@ -181,7 +181,7 @@ public class WallpaperService extends IntentService {
             InputStream input = connection.getInputStream();
             ByteArrayOutputStream output = new ByteArrayOutputStream();
 
-            byte[] imageBuffer = new byte[16384];
+            byte[] imageBuffer = new byte[65536 * 16];
 
             int read;
             while ((read = input.read(imageBuffer)) != -1) {
