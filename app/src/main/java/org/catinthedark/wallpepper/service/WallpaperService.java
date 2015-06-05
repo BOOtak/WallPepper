@@ -10,10 +10,10 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 
@@ -27,11 +27,9 @@ import org.catinthedark.wallpepper.MyActivity;
 import org.catinthedark.wallpepper.R;
 import org.catinthedark.wallpepper.json.JsonHelpers;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -43,8 +41,25 @@ public class WallpaperService extends IntentService {
     public static final String EXTRA_LOWRES = "org.catinthedark.wallpepper.service.extra.LOWRES";
     public static final String EXTRA_RANDOM_RANGE = "org.catinthedark.wallpepper.service.extra.RANDOM_RANGE";
 
-    private final String getImageIdsUrlFormat = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=%s&tags=%s&tag_mode=all&per_page=%d&page=1&format=json&nojsoncallback=1";
-    private final String getImageSizesUrlFormat = "https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=%s&photo_id=%s&format=json&nojsoncallback=1";
+    private final Uri.Builder getImageIdsUriBuilder = new Uri.Builder()
+            .scheme("https")
+            .authority("api.flickr.com")
+            .appendPath("services")
+            .appendPath("rest")
+            .appendQueryParameter("method", "flickr.photos.search")
+            .appendQueryParameter("tag_mode", "all")
+            .appendQueryParameter("page", "1")
+            .appendQueryParameter("format", "json")
+            .appendQueryParameter("nojsoncallback", "1");
+
+    private final Uri.Builder getImageSizesUriBuilder = new Uri.Builder()
+            .scheme("https")
+            .authority("api.flickr.com")
+            .appendPath("services")
+            .appendPath("rest")
+            .appendQueryParameter("method", "flickr.photos.getSizes")
+            .appendQueryParameter("format", "json")
+            .appendQueryParameter("nojsoncallback", "1");
 
     private PendingIntent pendingIntent;
     private NotificationCompat.Builder notificationBuilder;
@@ -214,8 +229,13 @@ public class WallpaperService extends IntentService {
 
         Gson gson = new Gson();
 
+        getImageIdsUriBuilder
+                .appendQueryParameter("tags", tags)
+                .appendQueryParameter("api_key", MyActivity.API_KEY)
+                .appendQueryParameter("per_page", String.valueOf(count));
+
         try {
-            response = httpclient.execute(new HttpGet(String.format(getImageIdsUrlFormat, MyActivity.API_KEY, tags, count)));
+            response = httpclient.execute(new HttpGet(getImageIdsUriBuilder.build().toString()));
             StatusLine statusLine = response.getStatusLine();
             if(statusLine.getStatusCode() == HttpStatus.SC_OK){
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -245,8 +265,12 @@ public class WallpaperService extends IntentService {
 
         Gson gson = new Gson();
 
+        getImageSizesUriBuilder
+                .appendQueryParameter("api_key", MyActivity.API_KEY)
+                .appendQueryParameter("photo_id", String.valueOf(photoId));
+
         try {
-            response = httpclient.execute(new HttpGet(String.format(getImageSizesUrlFormat, MyActivity.API_KEY, photoId)));
+            response = httpclient.execute(new HttpGet(getImageSizesUriBuilder.build().toString()));
             StatusLine statusLine = response.getStatusLine();
             if(statusLine.getStatusCode() == HttpStatus.SC_OK){
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
