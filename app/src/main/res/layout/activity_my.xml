@@ -66,4 +66,15 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"/>
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/save_background"
+        android:id="@+id/saveCurrentWallpaperButton"
+        android:layout_below="@+id/setWallpaperButton"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignRight="@+id/setWallpaperButton"
+        android:layout_alignEnd="@+id/setWallpaperButton" />
+
 </RelativeLayout>

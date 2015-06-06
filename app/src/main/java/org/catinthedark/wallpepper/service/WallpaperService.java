@@ -8,7 +8,9 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Environment;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 
@@ -24,16 +26,23 @@ import org.catinthedark.wallpepper.WallpepperNotification;
 import org.catinthedark.wallpepper.json.JsonHelpers;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class WallpaperService extends IntentService {
     public static final String ACTION_CHANGE_WALLPAPER = "org.catinthedark.wallpepper.service.action.CHANGE_WALLPAPER";
+    public static final String ACTION_SAVE_CURRENT_WALLPAPER = "org.catinthedark.wallpepper.service.action.SAVE_CURRENT_WALLPAPER";
     public static final String EXTRA_TAGS = "org.catinthedark.wallpepper.service.extra.TAGS";
     public static final String EXTRA_LOWRES = "org.catinthedark.wallpepper.service.extra.LOWRES";
     public static final String EXTRA_RANDOM_RANGE = "org.catinthedark.wallpepper.service.extra.RANDOM_RANGE";
+    public static final String EXTRA_LAST_SAVED_WALLPAPER = "org.catinthedark.wallpepper.service.extra.LAST_SAVED_WALLPAPER";
 
     private final Uri.Builder getImageIdsUriBuilder = new Uri.Builder()
             .scheme("https")
@@ -76,6 +85,13 @@ public class WallpaperService extends IntentService {
         context.startService(intent);
     }
 
+    public static void startSaveCurrentWallpaper(Context context, String lastWallpaperPath) {
+        Intent intent = new Intent(context, WallpaperService.class);
+        intent.setAction(ACTION_SAVE_CURRENT_WALLPAPER);
+        intent.putExtra(EXTRA_LAST_SAVED_WALLPAPER, lastWallpaperPath);
+        context.startService(intent);
+    }
+
     public WallpaperService() {
         super("WallpaperService");
     }
@@ -100,6 +116,7 @@ public class WallpaperService extends IntentService {
         if (intent != null) {
             final String action = intent.getAction();
             if (ACTION_CHANGE_WALLPAPER.equals(action)) {
+                long then = System.currentTimeMillis();
 
                 SharedPreferences preferences = getSharedPreferences(MyActivity.SHARED_PREFS_NAME, MODE_PRIVATE);
 
@@ -132,14 +149,43 @@ public class WallpaperService extends IntentService {
                 }
 
                 changeWallpaper(tags, randomRange, lowRes);
+
+                Log.d(MyActivity.TAG, "Service exited");
+                stopForeground(true);
+
+                Log.d(TAG, String.format("Total time: %fs", (((float) (System.currentTimeMillis() - then) / 1000))));
+            } else if (action.equals(ACTION_SAVE_CURRENT_WALLPAPER)) {
+                if (intent.hasExtra(EXTRA_LAST_SAVED_WALLPAPER)) {
+                    String lastWallpaperPath = intent.getStringExtra(EXTRA_LAST_SAVED_WALLPAPER);
+                    File pictureFolder = Environment.getExternalStoragePublicDirectory(
+                            Environment.DIRECTORY_PICTURES
+                    );
+                    File wallpepperFolder = new File(pictureFolder, "Wallpepper");
+                    if (wallpepperFolder.mkdirs() || wallpepperFolder.isDirectory()) {
+                        long millis = System.currentTimeMillis();
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy_HH:mm", getResources().getConfiguration().locale);
+                        Date currentDate = new Date(millis);
+                        String filename = String.format("Wallpepper_%s.png", sdf.format(currentDate));
+
+                        File outputFile = new File(wallpepperFolder, filename);
+
+                        downloadPhotoToFile(lastWallpaperPath, outputFile);
+
+                        Log.d(MyActivity.TAG, "Service exited");
+                        stopForeground(true);
+
+                    } else {
+                        Toast.makeText(
+                                getApplicationContext(),
+                                "Unable to save current background: Unable to create directory", Toast.LENGTH_LONG
+                        ).show();
+                    }
+                }
             }
         }
     }
 
     private void changeWallpaper(String tags, int randomRange, boolean lowRes) {
-
-        long then = System.currentTimeMillis();
-
         Context context = getApplicationContext();
 
         wallpepperNotification.publishProgress(getText(R.string.download_bg_progress).toString());
@@ -153,15 +199,34 @@ public class WallpaperService extends IntentService {
         wallpepperNotification.publishProgress(getString(R.string.set_bg_progress));
 
         if (wallpaper != null) {
-            setBitmapAsWallpaper(wallpaper, context, lowRes);
+            if (setBitmapAsWallpaper(wallpaper, context, lowRes)) {
+                SharedPreferences preferences = getSharedPreferences(MyActivity.SHARED_PREFS_NAME, MODE_PRIVATE);
+                preferences.edit().putString(MyActivity.LAST_WALLPAPER_URL_KEY, photoPath).apply();
+            }
         } else {
             Log.w(TAG, "Wallpaper is null");
         }
+    }
 
-        Log.d(MyActivity.TAG, "Service exited");
-        stopForeground(true);
+    private void downloadPhotoToFile(String url, File outFile) {
+        FileOutputStream out;
+        try {
+            out = new FileOutputStream(outFile);
+            Bitmap bitmap = downloadBitmap(url, wallpepperNotification, getText(R.string.save_background).toString());
 
-        Log.d(TAG, String.format("Total time: %fs", (((float) (System.currentTimeMillis() - then) / 1000))));
+            wallpepperNotification.publishProgress(getString(R.string.save_to_file));
+
+            if (bitmap != null) {
+                try {
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out); // bmp is your Bitmap instance
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     private Bitmap downloadBitmap(String bitmapPath, WallpepperNotification progressNotification, String notificationTitle) {
@@ -272,7 +337,7 @@ public class WallpaperService extends IntentService {
         }
     }
 
-    private void setBitmapAsWallpaper(Bitmap wallpaper, Context context, boolean lowRes) {
+    private boolean setBitmapAsWallpaper(Bitmap wallpaper, Context context, boolean lowRes) {
         WallpaperManager wallpaperManager = WallpaperManager.getInstance(context);
 
         try {
@@ -292,8 +357,10 @@ public class WallpaperService extends IntentService {
                 Bitmap scaledBitmap = Bitmap.createScaledBitmap(wallpaper, desiredWidth, desiredHeight, true);
                 wallpaperManager.setBitmap(scaledBitmap);
             }
+            return true;
         } catch (IOException e) {
             Log.e(TAG, e.getMessage());
+            return false;
         }
     }
 }

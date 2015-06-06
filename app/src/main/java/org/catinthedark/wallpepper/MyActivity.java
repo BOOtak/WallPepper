@@ -24,6 +24,7 @@ public class MyActivity extends ActionBarActivity implements TextWatcher {
     public static final String TAGS_KEY = "tags";
     public static final String LOW_RES_KEY = "low_res";
     public static final String RANDOM_RANGE_KEY = "random_range";
+    public static final String LAST_WALLPAPER_URL_KEY = "last_wallpaper_url";
 
     private EditText randomRangeEditText;
     private EditText tagsEditText;
@@ -70,6 +71,27 @@ public class MyActivity extends ActionBarActivity implements TextWatcher {
                     boolean lowRes = lowResCheckBox.isChecked();
 
                     WallpaperService.startChangeWallpaper(getApplicationContext(), tags, randomNumber, lowRes);
+                }
+            }
+        });
+
+        Button saveCurrantWallpaperButton = (Button) findViewById(R.id.saveCurrentWallpaperButton);
+
+        saveCurrantWallpaperButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SharedPreferences preferences = getSharedPreferences(MyActivity.SHARED_PREFS_NAME, MODE_PRIVATE);
+
+                if (preferences.contains(MyActivity.LAST_WALLPAPER_URL_KEY)) {
+                    String lastWallpaperPath = preferences.getString(MyActivity.LAST_WALLPAPER_URL_KEY, "");
+                    if (lastWallpaperPath != null && !lastWallpaperPath.isEmpty()) {
+                        WallpaperService.startSaveCurrentWallpaper(getApplicationContext(), lastWallpaperPath);
+                    }
+                } else {
+                    Toast.makeText(
+                            getApplicationContext(),
+                            "No wallpapers were set by Wallpepper! Try set wallpaper.", Toast.LENGTH_LONG
+                    ).show();
                 }
             }
         });

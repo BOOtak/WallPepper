@@ -15,5 +15,7 @@
     <string name="add_widget">Add widget</string>
     <string name="set_bg_progress">Setting wallpaper as background…</string>
     <string name="download_bg_progress">Downloading wallpaper…</string>
+    <string name="save_background">Save current wallpaper</string>
+    <string name="save_to_file">Writing current wallpaper to file…</string>
 
 </resources>
