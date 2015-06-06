@@ -8,8 +8,8 @@ android {
         applicationId "org.catinthedark.random.wallpaper"
         minSdkVersion 10
         targetSdkVersion 22
-        versionCode 2
-        versionName "0.7.1"
+        versionCode 3
+        versionName "0.8"
     }
     buildTypes {
         release {
