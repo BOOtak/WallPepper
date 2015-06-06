@@ -46,6 +46,7 @@ public class WallpaperService extends IntentService {
             .appendPath("rest")
             .appendQueryParameter("method", "flickr.photos.search")
             .appendQueryParameter("tag_mode", "all")
+            .appendQueryParameter("sort", "interestingness-desc")
             .appendQueryParameter("page", "1")
             .appendQueryParameter("format", "json")
             .appendQueryParameter("nojsoncallback", "1");
