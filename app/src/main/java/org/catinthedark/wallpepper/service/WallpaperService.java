@@ -110,6 +110,13 @@ public class WallpaperService extends IntentService {
                     tags = preferences.getString(MyActivity.TAGS_KEY, "");
                 }
 
+                if (tags == null || tags.isEmpty()) {
+                    Context context = getApplicationContext();
+                    getApplicationContext().startActivity(
+                            new Intent(context, MyActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                    return;
+                }
+
                 int randomRange = RANDOM_RANGE;
                 if (intent.hasExtra(EXTRA_RANDOM_RANGE)) {
                     randomRange = intent.getIntExtra(EXTRA_RANDOM_RANGE, RANDOM_RANGE);
