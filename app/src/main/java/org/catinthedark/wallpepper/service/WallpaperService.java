@@ -147,9 +147,26 @@ public class WallpaperService extends IntentService {
         String photoId = getPhotoId(randomRange, tags);
         String photoPath = getPhotoPath(photoId, lowRes);
 
-        URL url;
+        String progressTitle = getText(R.string.download_bg_progress).toString();
+        Bitmap wallpaper = downloadBitmap(photoPath, wallpepperNotification, progressTitle);
+
+        wallpepperNotification.publishProgress(getString(R.string.set_bg_progress));
+
+        if (wallpaper != null) {
+            setBitmapAsWallpaper(wallpaper, context, lowRes);
+        } else {
+            Log.w(TAG, "Wallpaper is null");
+        }
+
+        Log.d(MyActivity.TAG, "Service exited");
+        stopForeground(true);
+
+        Log.d(TAG, String.format("Total time: %fs", (((float) (System.currentTimeMillis() - then) / 1000))));
+    }
+
+    private Bitmap downloadBitmap(String bitmapPath, WallpepperNotification progressNotification, String notificationTitle) {
         try {
-            url = new URL(photoPath);
+            URL url = new URL(bitmapPath);
 
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setDoInput(true);
@@ -165,27 +182,15 @@ public class WallpaperService extends IntentService {
             while ((read = input.read(imageBuffer)) != -1) {
                 current_size += read;
                 output.write(imageBuffer, 0, read);
-                wallpepperNotification.publishProgress(
-                        getText(R.string.download_bg_progress).toString(),
+                progressNotification.publishProgress(
+                        notificationTitle,
                         false, current_size * 100 / total_size);
             }
-
-            wallpepperNotification.publishProgress(getString(R.string.set_bg_progress));
-
-            Bitmap wallpaper = BitmapFactory.decodeByteArray(output.toByteArray(), 0, total_size);
-
-            if (wallpaper != null) {
-                setBitmapAsWallpaper(wallpaper, context, lowRes);
-            } else {
-                Log.w(TAG, "Wallpaper is null");
-            }
-            Log.d(MyActivity.TAG, "Service exited");
-            stopForeground(true);
+            return BitmapFactory.decodeByteArray(output.toByteArray(), 0, total_size);
         } catch (IOException e) {
             Log.e(TAG, "An error occurred: " + e.toString());
+            return null;
         }
-
-        Log.d(TAG, String.format("Total time: %fs", (((float)(System.currentTimeMillis() - then) / 1000))));
     }
 
     private String getPhotoId(int count, String tags) {
