@@ -35,8 +35,6 @@ import java.net.URL;
 
 public class WallpaperService extends IntentService {
     public static final String ACTION_CHANGE_WALLPAPER = "org.catinthedark.wallpepper.service.action.CHANGE_WALLPAPER";
-    public static final String ACTION_CHANGE_WALLPAPER_NOPARAMS = "org.catinthedark.wallpepper.service.action.CHANGE_WALLPAPER_NOPARAMS";
-
     public static final String EXTRA_TAGS = "org.catinthedark.wallpepper.service.extra.TAGS";
     public static final String EXTRA_LOWRES = "org.catinthedark.wallpepper.service.extra.LOWRES";
     public static final String EXTRA_RANDOM_RANGE = "org.catinthedark.wallpepper.service.extra.RANDOM_RANGE";
@@ -120,12 +118,31 @@ public class WallpaperService extends IntentService {
         if (intent != null) {
             final String action = intent.getAction();
             if (ACTION_CHANGE_WALLPAPER.equals(action)) {
-                final String tags = intent.getStringExtra(EXTRA_TAGS);
-                final int randomRange = intent.getIntExtra(EXTRA_RANDOM_RANGE, RANDOM_RANGE);
-                final boolean lowRes = intent.getBooleanExtra(EXTRA_LOWRES, false);
+
+                SharedPreferences preferences = getSharedPreferences(MyActivity.SHARED_PREFS_NAME, MODE_PRIVATE);
+
+                String tags = "";
+                if (intent.hasExtra(EXTRA_TAGS)) {
+                    tags = intent.getStringExtra(EXTRA_TAGS);
+                } else if (preferences.contains(MyActivity.TAGS_KEY)) {
+                    tags = preferences.getString(MyActivity.TAGS_KEY, "");
+                }
+
+                int randomRange = RANDOM_RANGE;
+                if (intent.hasExtra(EXTRA_RANDOM_RANGE)) {
+                    randomRange = intent.getIntExtra(EXTRA_RANDOM_RANGE, RANDOM_RANGE);
+                } else if (preferences.contains(MyActivity.RANDOM_RANGE_KEY)) {
+                    randomRange = preferences.getInt(MyActivity.RANDOM_RANGE_KEY, RANDOM_RANGE);
+                }
+
+                boolean lowRes = false;
+                if (intent.hasExtra(EXTRA_LOWRES)) {
+                    lowRes = intent.getBooleanExtra(EXTRA_LOWRES, false);
+                } else if (preferences.contains(MyActivity.LOW_RES_KEY)) {
+                    lowRes = preferences.getBoolean(MyActivity.LOW_RES_KEY, false);
+                }
+
                 changeWallpaper(tags, randomRange, lowRes);
-            } else if (ACTION_CHANGE_WALLPAPER_NOPARAMS.equals(action)) {
-                changeWallpaper();
             }
         }
     }
@@ -149,28 +166,6 @@ public class WallpaperService extends IntentService {
         }
 
         notificationManager.notify(NOTIFICATION_ID, notification);
-    }
-
-    private void changeWallpaper() {
-        SharedPreferences preferences = getSharedPreferences(MyActivity.SHARED_PREFS_NAME, MODE_PRIVATE);
-
-        int randomRange = 10;
-        String tags = "";
-        boolean lowRes = false;
-
-        if (preferences.contains(MyActivity.RANDOM_RANGE_KEY)) {
-            randomRange = preferences.getInt(MyActivity.RANDOM_RANGE_KEY, 10);
-        }
-
-        if (preferences.contains(MyActivity.TAGS_KEY)) {
-            tags = preferences.getString(MyActivity.TAGS_KEY, "");
-        }
-
-        if (preferences.contains(MyActivity.LOW_RES_KEY)) {
-            lowRes = preferences.getBoolean(MyActivity.LOW_RES_KEY, false);
-        }
-
-        changeWallpaper(tags, randomRange, lowRes);
     }
 
     private void changeWallpaper(String tags, int randomRange, boolean lowRes) {

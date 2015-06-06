@@ -47,11 +47,8 @@ public class RefreshWallpaperWidget extends AppWidgetProvider {
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
 
-        SharedPreferences preferences = context.getSharedPreferences(MyActivity.SHARED_PREFS_NAME, Context.MODE_PRIVATE);
-
         Intent intent = new Intent(context, WallpaperService.class);
-        intent.setAction(WallpaperService.ACTION_CHANGE_WALLPAPER_NOPARAMS);
-
+        intent.setAction(WallpaperService.ACTION_CHANGE_WALLPAPER);
         PendingIntent pendingIntent = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 
         views.setOnClickPendingIntent(R.id.imageButton, pendingIntent);
