@@ -1,9 +1,6 @@
 package org.catinthedark.wallpepper.service;
 
 import android.app.IntentService;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.WallpaperManager;
 import android.content.Intent;
 import android.content.Context;
@@ -11,8 +8,6 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Build;
-import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -25,6 +20,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.catinthedark.wallpepper.MyActivity;
 import org.catinthedark.wallpepper.R;
+import org.catinthedark.wallpepper.WallpepperNotification;
 import org.catinthedark.wallpepper.json.JsonHelpers;
 
 import java.io.ByteArrayOutputStream;
@@ -60,11 +56,8 @@ public class WallpaperService extends IntentService {
             .appendQueryParameter("format", "json")
             .appendQueryParameter("nojsoncallback", "1");
 
-    private PendingIntent pendingIntent;
-    private NotificationCompat.Builder notificationBuilder;
-    private NotificationManager notificationManager;
-    private final int NOTIFICATION_ID = 26682;
     private final int RANDOM_RANGE = 15;
+    private WallpepperNotification wallpepperNotification;
 
     private static final String TAG = MyActivity.TAG;
 
@@ -91,26 +84,14 @@ public class WallpaperService extends IntentService {
     public void onCreate() {
         super.onCreate();
         Context context = getApplicationContext();
-
-        notificationBuilder = new NotificationCompat.Builder(context)
-                .setSmallIcon(android.R.drawable.ic_menu_gallery)
-                .setContentTitle("Setting background...")
-                .setProgress(0, 0, true);
-        notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        wallpepperNotification = new WallpepperNotification(context, getText(R.string.app_name));
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
 
-        Notification notification = notificationBuilder.build();
-
-        if (Build.VERSION.SDK_INT <= 10) {
-            pendingIntent = PendingIntent.getService(getApplicationContext(), 0, new Intent(this, MyActivity.class), 0);
-            notification.setLatestEventInfo(this, getText(R.string.app_name), "setting background", pendingIntent);
-        }
-
-        startForeground(NOTIFICATION_ID, notification);
+        startForeground(WallpepperNotification.NOTIFICATION_ID, wallpepperNotification.getNotification());
         return START_NOT_STICKY;
     }
 
@@ -148,34 +129,13 @@ public class WallpaperService extends IntentService {
         }
     }
 
-    private void publishProgress(String message) {
-        publishProgress(message, true, 0);
-    }
-
-    private void publishProgress(String message, boolean indeterminate, int CurrentProgress) {
-        notificationBuilder.setContentText(message);
-        if (indeterminate) {
-            notificationBuilder.setProgress(0, 0, true);
-        } else {
-            notificationBuilder.setProgress(100, CurrentProgress, false);
-        }
-
-        Notification notification = notificationBuilder.build();
-
-        if (Build.VERSION.SDK_INT <= 10) {
-            notification.setLatestEventInfo(this, getText(R.string.app_name), message, pendingIntent);
-        }
-
-        notificationManager.notify(NOTIFICATION_ID, notification);
-    }
-
     private void changeWallpaper(String tags, int randomRange, boolean lowRes) {
 
         long then = System.currentTimeMillis();
 
         Context context = getApplicationContext();
 
-        publishProgress("Downloading wallpaper...");
+        wallpepperNotification.publishProgress("Downloading wallpaper...");
 
         String photoId = getPhotoId(randomRange, tags);
         String photoPath = getPhotoPath(photoId, lowRes);
@@ -198,10 +158,10 @@ public class WallpaperService extends IntentService {
             while ((read = input.read(imageBuffer)) != -1) {
                 current_size += read;
                 output.write(imageBuffer, 0, read);
-                publishProgress("Downloading wallpaper...", false, current_size * 100 / total_size);
+                wallpepperNotification.publishProgress("Downloading wallpaper...", false, current_size * 100 / total_size);
             }
 
-            publishProgress("Setting wallpaper as background...");
+            wallpepperNotification.publishProgress("Setting wallpaper as background...");
 
             Bitmap wallpaper = BitmapFactory.decodeByteArray(output.toByteArray(), 0, total_size);
 
