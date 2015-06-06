@@ -135,7 +135,7 @@ public class WallpaperService extends IntentService {
 
         Context context = getApplicationContext();
 
-        wallpepperNotification.publishProgress("Downloading wallpaper...");
+        wallpepperNotification.publishProgress(getText(R.string.download_bg_progress).toString());
 
         String photoId = getPhotoId(randomRange, tags);
         String photoPath = getPhotoPath(photoId, lowRes);
@@ -158,10 +158,12 @@ public class WallpaperService extends IntentService {
             while ((read = input.read(imageBuffer)) != -1) {
                 current_size += read;
                 output.write(imageBuffer, 0, read);
-                wallpepperNotification.publishProgress("Downloading wallpaper...", false, current_size * 100 / total_size);
+                wallpepperNotification.publishProgress(
+                        getText(R.string.download_bg_progress).toString(),
+                        false, current_size * 100 / total_size);
             }
 
-            wallpepperNotification.publishProgress("Setting wallpaper as background...");
+            wallpepperNotification.publishProgress(getString(R.string.set_bg_progress));
 
             Bitmap wallpaper = BitmapFactory.decodeByteArray(output.toByteArray(), 0, total_size);
 

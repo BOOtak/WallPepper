@@ -29,7 +29,7 @@ public class WallpepperNotification {
 
         notificationBuilder = new NotificationCompat.Builder(context)
                 .setSmallIcon(android.R.drawable.ic_menu_gallery)
-                .setContentTitle("Setting background...")
+                .setContentTitle(context.getText(R.string.app_name))
                 .setProgress(0, 0, true);
         notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -37,7 +37,7 @@ public class WallpepperNotification {
 
         if (Build.VERSION.SDK_INT <= 10) {
             pendingIntent = PendingIntent.getService(context, 0, new Intent(context, MyActivity.class), 0);
-            notification.setLatestEventInfo(context, title, "setting background", pendingIntent);
+            notification.setLatestEventInfo(context, title, context.getText(R.string.set_bg_progress), pendingIntent);
         }
     }
 

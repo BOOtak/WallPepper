@@ -13,5 +13,7 @@
     <string name="low_res">Low res (for testing)</string>
     <string name="appwidget_text">EXAMPLE</string>
     <string name="add_widget">Add widget</string>
+    <string name="set_bg_progress">Setting wallpaper as background…</string>
+    <string name="download_bg_progress">Downloading wallpaper…</string>
 
 </resources>
