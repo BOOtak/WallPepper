@@ -3,8 +3,8 @@ package org.catinthedark.wallpepper;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -14,7 +14,7 @@ import android.widget.Toast;
 import org.catinthedark.wallpepper.service.WallpaperService;
 
 
-public class MyActivity extends ActionBarActivity {
+public class MyActivity extends ActionBarActivity implements TextWatcher {
 
     public static final String TAG = "WallPepper";
 
@@ -40,6 +40,8 @@ public class MyActivity extends ActionBarActivity {
         tagsEditText = (EditText) findViewById(R.id.tagsEditText);
         lowResCheckBox = (CheckBox) findViewById(R.id.lowResCheckBox);
         Button setWallpaperButton = (Button) findViewById(R.id.setWallpaperButton);
+
+        tagsEditText.addTextChangedListener(this);
 
         preferences = getSharedPreferences(SHARED_PREFS_NAME, MODE_PRIVATE);
 
@@ -84,21 +86,23 @@ public class MyActivity extends ActionBarActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.my, menu);
-        return true;
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
+    public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+    }
+
+    @Override
+    public void afterTextChanged(Editable s) {
+        String filtered_tags = s.toString();
+        if (filtered_tags.matches(".*[^a-z^0-9,].*")) {
+
+            filtered_tags = filtered_tags.replaceAll("[^a-z^0-9,]", "");
+            s.clear();
+            s.append(filtered_tags);
         }
-        return super.onOptionsItemSelected(item);
     }
 }
