@@ -178,13 +178,18 @@ public class WallpaperService extends IntentService {
 
             byte[] imageBuffer = new byte[65536 * 16];
 
+            long then = System.currentTimeMillis();
+
             int read;
             while ((read = input.read(imageBuffer)) != -1) {
                 current_size += read;
                 output.write(imageBuffer, 0, read);
-                progressNotification.publishProgress(
-                        notificationTitle,
-                        false, current_size * 100 / total_size);
+                if (System.currentTimeMillis() - then >= 250) {
+                    progressNotification.publishProgress(
+                            notificationTitle,
+                            false, current_size * 100 / total_size);
+                    then = System.currentTimeMillis();
+                }
             }
             return BitmapFactory.decodeByteArray(output.toByteArray(), 0, total_size);
         } catch (IOException e) {
